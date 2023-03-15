@@ -1,4 +1,8 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.Filters;
+using UrlShortener.DTO.Auth;
 using UrlShortener.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +13,22 @@ builder.Services.AddDbContext<DatabaseContext>(options => options.UseMySQL(conne
 
 // Add services to the container.
 
-//builder.Services.AddAuthentication("cookie").AddCookie("cookie");
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+{
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.ExpireTimeSpan = TimeSpan.FromDays(1);
+    options.SlidingExpiration = true;
+    options.Events.OnRedirectToAccessDenied = c =>
+    {
+        c.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.FromResult<object>(null);
+    };
+    options.Events.OnRedirectToLogin = c =>
+    {
+        c.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.FromResult<object>(null);
+    };
+});
 
 
 builder.Services.AddControllers();
@@ -17,7 +36,17 @@ builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    /*options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Cookie,
+        Name = CookieAuthenticationDefaults.CookiePrefix,
+        Type = SecuritySchemeType.ApiKey,
+    });*/
+
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+});
 
 var app = builder.Build();
 
@@ -29,9 +58,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthentication();
 app.UseAuthorization();
+//app.UseStatusCodePages();
 
 app.MapControllers();
 
