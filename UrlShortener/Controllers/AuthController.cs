@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UrlShortener.DTO.Auth;
 using UrlShortener.Entities;
+using UrlShortener.Utils;
 
 namespace UrlShortener.Controllers;
 
@@ -14,12 +15,10 @@ namespace UrlShortener.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly DatabaseContext _context;
-    private readonly IConfiguration _configuration;
 
-    public AuthController(DatabaseContext context, IConfiguration configuration)
+    public AuthController(DatabaseContext context)
     {
         _context = context;
-        _configuration = configuration;
     }
 
     [HttpPost("register")]
@@ -36,7 +35,6 @@ public class AuthController : ControllerBase
 
         var newUser = new User
         {
-            Id = await Nanoid.Nanoid.GenerateAsync(size: 20),
             Email = payload.Email,
             Password = pwdHash
         };
@@ -72,14 +70,13 @@ public class AuthController : ControllerBase
     {
         var problem = Problem("Unauthorized", null, 400);
 
-        var userPrincipal = this.User;
-        var usrClaim = userPrincipal.Claims.FirstOrDefault(c => c.Type == "usr").Value;
-        if (string.IsNullOrEmpty(usrClaim))
+        var usrId = ContextUserId.FromClaims(User);
+        if (usrId is null)
         {
             return problem;
         }
 
-        var usr = await _context.Users.Where(u => u.Id == usrClaim).FirstOrDefaultAsync();
+        var usr = await _context.Users.Where(u => u.Id == usrId).FirstOrDefaultAsync();
         return usr is null ? problem : Ok(usr);
     }
 
@@ -88,7 +85,7 @@ public class AuthController : ControllerBase
     {
         var claims = new List<Claim>
         {
-            new("usr", user.Id)
+            new("usr", user.Id.ToString())
         };
 
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

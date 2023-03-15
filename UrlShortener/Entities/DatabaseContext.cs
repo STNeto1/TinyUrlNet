@@ -9,4 +9,5 @@ public class DatabaseContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<TinyUrl> TinyUrls { set; get; }
 }

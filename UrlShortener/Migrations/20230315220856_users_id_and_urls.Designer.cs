@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UrlShortener.Entities;
 
@@ -10,16 +11,18 @@ using UrlShortener.Entities;
 namespace UrlShortener.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20230315220856_users_id_and_urls")]
+    partial class users_id_and_urls
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("UrlShortener.Entities.TinyUrl", b =>
+            modelBuilder.Entity("UrlShortener.Entities.Url", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -43,7 +46,7 @@ namespace UrlShortener.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TinyUrls");
+                    b.ToTable("Urls");
                 });
 
             modelBuilder.Entity("UrlShortener.Entities.User", b =>
@@ -68,7 +71,7 @@ namespace UrlShortener.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("UrlShortener.Entities.TinyUrl", b =>
+            modelBuilder.Entity("UrlShortener.Entities.Url", b =>
                 {
                     b.HasOne("UrlShortener.Entities.User", null)
                         .WithMany("Urls")
