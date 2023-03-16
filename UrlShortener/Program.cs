@@ -1,13 +1,18 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Filters;
 using UrlShortener.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 var connectionString = builder.Configuration.GetConnectionString("Default") ??
                        throw new InvalidOperationException("Connection string 'Default' not found.");
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseMySQL(connectionString));
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("localhost:6379"));
 
 
 // Add services to the container.

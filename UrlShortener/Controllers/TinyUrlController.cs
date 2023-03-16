@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using UrlShortener.Entities;
 using UrlShortener.Utils;
 
@@ -11,10 +12,16 @@ namespace UrlShortener.Controllers;
 public class TinyUrlController : Controller
 {
     private readonly DatabaseContext _context;
+    private readonly IDatabase _redis;
+    private readonly ILogger _logger;
 
-    public TinyUrlController(DatabaseContext context)
+
+    public TinyUrlController(DatabaseContext context, IConnectionMultiplexer multiplexer,
+        ILogger<TinyUrlController> logger)
     {
         _context = context;
+        _redis = multiplexer.GetDatabase();
+        _logger = logger;
     }
 
     [HttpPost("create")]
@@ -31,7 +38,8 @@ public class TinyUrlController : Controller
         _context.TinyUrls.Add(newTinyUrl);
         await _context.SaveChangesAsync();
 
-
+        await _redis.StringSetAsync(newTinyUrl.ShortUrl, newTinyUrl.ToString());
+ 
         return CreatedAtAction(nameof(GetShowTinyUrl), new {id = newTinyUrl.Id}, newTinyUrl);
     }
 
