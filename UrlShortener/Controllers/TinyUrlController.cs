@@ -1,4 +1,3 @@
-using KafkaFlow.Producers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,19 +11,15 @@ namespace UrlShortener.Controllers;
 public class TinyUrlController : Controller
 {
     private readonly DatabaseContext _context;
-    private readonly IProducerAccessor _producerAccessor;
 
-    public TinyUrlController(DatabaseContext context, IProducerAccessor producerAccessor)
+    public TinyUrlController(DatabaseContext context)
     {
         _context = context;
-        _producerAccessor = producerAccessor;
     }
 
     [HttpPost("create")]
     public async Task<ActionResult<TinyUrl>> PostCreateTinyUrl(CreateTinyUrl payload)
     {
-        var producer = _producerAccessor.GetProducer("publish-task");
-
         var userId = ContextUserId.FromClaims(User);
 
         var newTinyUrl = new TinyUrl
@@ -36,7 +31,6 @@ public class TinyUrlController : Controller
         _context.TinyUrls.Add(newTinyUrl);
         await _context.SaveChangesAsync();
 
-        await producer.ProduceAsync("key", newTinyUrl);
 
         return CreatedAtAction(nameof(GetShowTinyUrl), new {id = newTinyUrl.Id}, newTinyUrl);
     }

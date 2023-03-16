@@ -1,5 +1,3 @@
-using KafkaFlow;
-using KafkaFlow.Serializer;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Filters;
@@ -11,18 +9,6 @@ var connectionString = builder.Configuration.GetConnectionString("Default") ??
                        throw new InvalidOperationException("Connection string 'Default' not found.");
 builder.Services.AddDbContext<DatabaseContext>(options => options.UseMySQL(connectionString));
 
-builder.Services.AddKafka(kafka => kafka.AddCluster(cluster =>
-{
-    const string topicName = "new_tiny_url";
-    cluster
-        .WithBrokers(new[] {"localhost:9092"})
-        .CreateTopicIfNotExists(topicName, 1, 1)
-        .AddProducer("publish-task",
-            producer => producer
-                .DefaultTopic(topicName)
-                .AddMiddlewares(middlewares =>
-                    middlewares.AddSerializer<JsonCoreSerializer>()));
-}));
 
 // Add services to the container.
 
