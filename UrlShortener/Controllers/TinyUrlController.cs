@@ -1,6 +1,8 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Shared;
 using StackExchange.Redis;
 using UrlShortener.Entities;
 using UrlShortener.Utils;
@@ -38,8 +40,13 @@ public class TinyUrlController : Controller
         _context.TinyUrls.Add(newTinyUrl);
         await _context.SaveChangesAsync();
 
-        await _redis.StringSetAsync(newTinyUrl.ShortUrl, newTinyUrl.ToString());
- 
+        await _redis.StringSetAsync(newTinyUrl.ShortUrl, JsonSerializer.SerializeToUtf8Bytes(new TinyUrlPayload
+        {
+            Id = newTinyUrl.Id,
+            ShortUrl = newTinyUrl.ShortUrl,
+            LongUrl = newTinyUrl.LongUrl
+        }));
+
         return CreatedAtAction(nameof(GetShowTinyUrl), new {id = newTinyUrl.Id}, newTinyUrl);
     }
 

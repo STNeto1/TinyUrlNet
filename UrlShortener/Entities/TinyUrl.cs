@@ -11,4 +11,5 @@ public class TinyUrl
     [JsonIgnore] public int? UserId { get; set; }
 
     public DateTime CreatedAt { get; private set; } = DateTime.Now;
+    
 }

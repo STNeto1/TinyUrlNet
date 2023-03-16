@@ -45,4 +45,8 @@
       <Compile Remove="Services\IQueue.cs" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Shared\Shared.csproj" />
+    </ItemGroup>
+
 </Project>
